@@ -1,0 +1,87 @@
+services:
+  back1: &back
+    container_name: back1
+    working_dir: /var/www/html
+    ports:
+      - "8085:8000"
+    image: xandaothebig/rinha-backend-fpm
+    networks:
+      - backend
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: "20MB"
+          cpus: "0.2"
+
+  back2:
+    <<: *back
+    container_name: back2
+    ports:
+      - "8086:8000"
+
+  queue:
+    container_name: queue
+    networks:
+      - backend
+      - payment-processor
+    image: xandaothebig/rinha-backend-cli
+    environment:
+      - PROCESSOR_DEFAULT_URL=http://payment-processor-default:8080
+      - PROCESSOR_FALLBACK_URL=http://payment-processor-fallback:8080
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.65"
+          memory: "155MB"
+
+  lb:
+    image: nginx:alpine-slim
+    container_name: lb
+    ports:
+      - "9999:9999"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - back1
+      - back2
+    networks:
+      - payment-processor
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.15"
+          memory: "15MB"
+
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: "140MB"
+
+networks:
+  payment-processor:
+    external: true
+  backend:
+    driver: bridge
