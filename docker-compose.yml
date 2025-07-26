@@ -4,7 +4,7 @@ services:
     working_dir: /var/www/html
     ports:
       - "8085:8000"
-    image: xandaothebig/rinha-backend-fpm
+    image: xandaothebig/rinha-backend-fpm:latest
     networks:
       - backend
     environment:
@@ -16,7 +16,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: "20MB"
+          memory: "30MB"
           cpus: "0.2"
 
   back2:
@@ -30,7 +30,7 @@ services:
     networks:
       - backend
       - payment-processor
-    image: xandaothebig/rinha-backend-cli
+    image: xandaothebig/rinha-backend-cli:latest
     environment:
       - PROCESSOR_DEFAULT_URL=http://payment-processor-default:8080
       - PROCESSOR_FALLBACK_URL=http://payment-processor-fallback:8080
@@ -41,7 +41,7 @@ services:
       resources:
         limits:
           cpus: "0.65"
-          memory: "155MB"
+          memory: "115MB"
 
   lb:
     image: nginx:alpine-slim
@@ -60,7 +60,7 @@ services:
       resources:
         limits:
           cpus: "0.15"
-          memory: "15MB"
+          memory: "25MB"
 
   redis:
     container_name: redis
@@ -78,7 +78,7 @@ services:
       resources:
         limits:
           cpus: "0.3"
-          memory: "140MB"
+          memory: "150MB"
 
 networks:
   payment-processor:

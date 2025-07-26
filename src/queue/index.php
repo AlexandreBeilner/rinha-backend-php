@@ -79,7 +79,6 @@ while (true) {
         $fallbackHealth = checkServiceHealth(PROCESSOR_FALLBACK_URL, $dateCheckFallbackHealth, $fallbackHealth);
 
         if ($defaultHealth['failing'] && $fallbackHealth['failing']) {
-            usleep(5000);
             continue;
         }
 
